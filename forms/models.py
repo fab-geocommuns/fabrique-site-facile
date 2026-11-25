@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from dsfr.forms import DsfrDjangoTemplates
 from dsfr.utils import dsfr_input_class_attr
 from modelcluster.fields import ParentalKey
+from wagtail.admin.mail import send_mail
 from wagtail.admin.panels import FieldPanel, FieldRowPanel, InlinePanel, MultiFieldPanel
 from wagtail.api import APIField
 from wagtail.contrib.forms.forms import BaseForm, FormBuilder
@@ -123,6 +124,29 @@ class FormPage(HoneypotFormMixin, HoneypotFormSubmissionMixin, AbstractEmailForm
         verbose_name_plural = _("Form pages")
 
     form_builder = SitesFacilesFormBuilder
+
+    def get_reply_to_address(self, form) -> str | None:
+        """
+        Returns the address entered in the first e-mail field of the form, if any,
+        so that the notification can be answered directly from the mail client.
+        """
+        for field in self.get_form_fields():
+            if field.field_type == "email":
+                value = form.cleaned_data.get(field.clean_name)
+                if value:
+                    return value
+        return None
+
+    def send_mail(self, form):
+        addresses = [x.strip() for x in self.to_address.split(",")]
+        reply_to_address = self.get_reply_to_address(form)
+        send_mail(
+            self.subject,
+            self.render_email(form),
+            addresses,
+            self.from_address,
+            reply_to=[reply_to_address] if reply_to_address else None,
+        )
 
     def all_fields_required(self):
         """
