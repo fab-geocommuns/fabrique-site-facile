@@ -1,3 +1,4 @@
+from django.core import mail
 from django.core.management import call_command
 from wagtail.test.utils import WagtailPageTestCase
 
@@ -53,3 +54,24 @@ class FormsTestCase(WagtailPageTestCase):
             r"<li class=\"fr-error-text\">(\\n)?\s*(Ce champ est requis|Ce champ est obligatoire)\.(\\n)?\s*<\/li>",
         )
         # Updates sometimes mess with the order of the translations and so the displayed translation. Both are fine.
+
+    def test_notification_email_replies_to_sender(self):
+        form_page = FormPage.objects.first()
+        form_page.to_address = "fabrique-donnee-territoriale@ign.fr"
+        form_page.from_address = "ne-pas-repondre@example.com"
+        form_page.subject = "Nouveau message de contact"
+        form_page.honeypot = False
+        form_page.save()
+
+        post_data = {
+            "votre_nom_complet": "Félix Faure",
+            "votre_adresse_electronique": "no7@elysee.fr",
+            "titre_de_votre_message": "Ma connaissance",
+            "votre_message": "S’est enfuie par l’escalier !",
+        }
+        self.client.post(form_page.url, post_data)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["fabrique-donnee-territoriale@ign.fr"])
+        self.assertEqual(mail.outbox[0].from_email, "ne-pas-repondre@example.com")
+        self.assertEqual(mail.outbox[0].reply_to, ["no7@elysee.fr"])
