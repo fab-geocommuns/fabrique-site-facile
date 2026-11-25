@@ -1,0 +1,39 @@
+{% load static wagtailcore_tags wagtailimages_tags %}
+{% comment %}
+  Copie du gabarit de Sites Faciles (content_manager) pour le bandeau d'en-tête des pages. Différences :
+  - colonne de texte : il manquait une espace dans la classe (« fr-col-12fr-col-md-6 ») ; le texte prenait toute la
+    largeur et passait sur l'illustration du bandeau. Il occupe ici un peu plus de la moitié sur tablette, la moitié
+    sur ordinateur ;
+  - image : même recadrage (3,4:1, point focal respecté) mais rendu en 2400 px de large au plus, au lieu de 1200, pour
+    rester nette sur les grands écrans ;
+  - marges intérieures réduites (40 px au lieu de 64) et hauteur minimale de 350 px déplacée dans static/css/style.css.
+{% endcomment %}
+{% if page.header_image or page.header_color_class %}
+  {% image page.header_image fill-2400x700 as bg_img %}
+  <div class="cmsfr-hero{% if page.header_large %} cmsfr-hero-large{% endif %}{% if page.header_darken %} cmsfr-background-dark{% endif %}"
+       style="{% if page.header_image %}background-image: {% if page.header_darken %}linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),{% endif %}url({{ bg_img.url }});
+              {% elif page.header_color_class %}background-color: var(--background-alt-{{ page.header_color_class }});
+              {% endif %}">
+    {% if page.header_with_title or page.header_cta_buttons or page.header_cta_link and page.header_cta_label %}
+      <div class="fr-container fr-py-5w">
+        <div class="fr-grid-row fr-grid-row--gutters">
+          <div class="fr-col-12{% if not page.header_large %} fr-col-md-7 fr-col-lg-6{% endif %}">
+            {% if page.header_with_title %}
+              <h1 {% if block.value.large %}class="fr-display--sm"{% endif %}>
+                {{ page.title }}
+                {% if extra_title %}: {{ extra_title }}{% endif %}
+                {% include "content_manager/blocks/page_visibility.html" %}
+              </h1>
+            {% endif %}
+            {% if page.header_cta_text %}{{ page.header_cta_text|richtext }}{% endif %}
+            {% if page.header_cta_buttons %}
+              {% for block in page.header_cta_buttons %}
+                {% include_block block %}
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
