@@ -18,6 +18,19 @@ p:empty {
     background-repeat: no-repeat;
 }
 
+/* Fabrique : hauteur minimale du bandeau, auparavant en style en ligne dans content_manager/blocks/heading.html. */
+.cmsfr-hero {
+    min-height: 350px;
+}
+
+/* Fabrique : accroche (titre de niveau 2) du bandeau, au corps d'un titre de niveau 4 pour ne pas rivaliser avec
+   le titre de la page. */
+.cmsfr-hero h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    margin-bottom: 1rem;
+}
+
 .cmsfr-hero-large {
     display: flex;
     justify-content: center;
