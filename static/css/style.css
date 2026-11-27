@@ -128,3 +128,11 @@ p:empty {
     background-color: var(--background-contrast-blue-ecume);
     color: var(--text-label-blue-ecume);
 }
+
+/* Fabrique : étiquettes des cartes (agenda, accueil, actualités, produits). Le DSFR donne aux <li> d'un groupe
+   d'étiquettes une hauteur de ligne de 2,75rem (cible tactile des étiquettes cliquables), même pour les petites
+   étiquettes de 1,5rem : quand elles passent à la ligne, l'interligne est démesuré. Celles des cartes ne sont pas
+   cliquables (le lien est sur le titre) : on ramène la ligne à la hauteur d'une petite étiquette. */
+.fr-card .fr-card__start .fr-tags-group > li {
+    line-height: 1.5rem;
+}

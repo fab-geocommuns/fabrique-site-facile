@@ -1,0 +1,63 @@
+{% load wagtailimages_tags fabrique_images %}
+{% comment %}
+  Carte d'un rendez-vous : bloc « Prochains rendez-vous » de l'accueil (templates/content_manager/blocks/
+  events_recent_entries.html) et section « Agenda » des fiches produits (fabrique/produit_page.html).
+  Paramètres : post (events.EventEntryPage), titre_tag (balise du titre, h3 par défaut).
+  Dates de l'événement, type et équipes lus dans Grist, vignette entière.
+{% endcomment %}
+<div class="fr-card fr-enlarge-link">
+  <div class="fr-card__body">
+    <div class="fr-card__content">
+      <{{ titre_tag|default:"h3" }} class="fr-card__title">
+        <a href="{{ post.url }}">{{ post.title }}</a>
+      </{{ titre_tag|default:"h3" }}>
+      <p class="fr-card__desc fr-icon-calendar-event-fill">
+        {% if post.event_date_start.date == post.event_date_end.date %}
+          {{ post.event_date_start|date:"l j F" }}{% if post.event_date_start|date:"Hi" != "0000" %}, {{ post.event_date_start|date:"G" }}h{% if post.event_date_start|date:"i" != "00" %}{{ post.event_date_start|date:"i" }}{% endif %}{% endif %}
+        {% elif post.event_date_start.year == post.event_date_end.year and post.event_date_start.month == post.event_date_end.month %}
+          {{ post.event_date_start.day }} – {{ post.event_date_end|date:"j F" }}
+        {% else %}
+          {{ post.event_date_start|date:"j F" }} – {{ post.event_date_end|date:"j F Y" }}
+        {% endif %}
+      </p>
+      {% with etiquettes=post.etiquettes_grist %}
+        {% if etiquettes.type or etiquettes.equipes %}
+          <div class="fr-card__start">
+            <ul class="fr-tags-group">
+              {% if etiquettes.type %}
+                <li>
+                  <p class="fr-tag fr-tag--sm fabrique-tag-type"><span class="fr-sr-only">Type : </span>{{ etiquettes.type }}</p>
+                </li>
+              {% endif %}
+              {% for equipe in etiquettes.equipes %}
+                <li>
+                  <p class="fr-tag fr-tag--sm fr-tag--icon-left fr-icon-team-line">
+                    <span class="fr-sr-only">Équipe : </span>{{ equipe }}
+                  </p>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% elif post.event_categories.all %}
+          <div class="fr-card__start">
+            <ul class="fr-tags-group">
+              {% for cat in post.event_categories.all %}
+                <li>
+                  <p class="fr-tag fr-tag--sm">{{ cat.name }}</p>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+      {% endwith %}
+    </div>
+  </div>
+  {% if post.header_image %}
+    <div class="fr-card__header">
+      <div class="fr-card__img fabrique-vignette">
+        {% image post.header_image max-480x270 preserve-svg as vignette %}
+        <img class="fr-responsive-img" src="{{ vignette.url }}" width="{{ vignette.width }}" height="{{ vignette.height }}" alt=""{% with largeur=post.header_image|largeur_vignette %}{% if largeur %} style="width: {{ largeur }}px"{% endif %}{% endwith %}>
+      </div>
+    </div>
+  {% endif %}
+</div>

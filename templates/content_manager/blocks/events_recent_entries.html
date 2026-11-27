@@ -1,9 +1,9 @@
 {% load i18n wagtailcore_tags wagtailimages_tags wagtail_dsfr_tags fabrique_images %}
 {% comment %}
   Copie du gabarit de Sites Faciles (content_manager) pour le bloc « Événements récents » (prochains rendez-vous
-  de la page d'accueil) : mêmes cartes que la liste de l'agenda (templates/events/blocks/events_index_posts_list.html),
-  avec les dates de l'événement au lieu de la date de publication, le type et les équipes lus dans Grist, et la
-  vignette entière. Sous les cartes : lien vers l'agenda et abonnement iCal.
+  de la page d'accueil). Les cartes (fabrique/agenda/carte.html, partagées avec les fiches produits) reprennent
+  celles de la liste de l'agenda, avec les dates de l'événement au lieu de la date de publication, le type et les
+  équipes lus dans Grist, et la vignette entière. Sous les cartes : lien vers l'agenda et abonnement iCal.
 {% endcomment %}
 
 <div class="fr-container fr-py-4w cmsfr-block-events-recent-entries">
@@ -80,62 +80,7 @@
   <div class="fr-grid-row fr-grid-row--gutters fr-mb-3w">
     {% for post in value.posts %}
       <div class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
-        <div class="fr-card fr-enlarge-link">
-          <div class="fr-card__body">
-            <div class="fr-card__content">
-              <{{ value.sub_heading_tag }} class="fr-card__title">
-                <a href="{{ post.url }}">{{ post.title }}</a>
-              </{{ value.sub_heading_tag }}>
-              <p class="fr-card__desc fr-icon-calendar-event-fill">
-                {% if post.event_date_start.date == post.event_date_end.date %}
-                  {{ post.event_date_start|date:"l j F" }}{% if post.event_date_start|date:"Hi" != "0000" %}, {{ post.event_date_start|date:"G" }}h{% if post.event_date_start|date:"i" != "00" %}{{ post.event_date_start|date:"i" }}{% endif %}{% endif %}
-                {% elif post.event_date_start.year == post.event_date_end.year and post.event_date_start.month == post.event_date_end.month %}
-                  {{ post.event_date_start.day }} – {{ post.event_date_end|date:"j F" }}
-                {% else %}
-                  {{ post.event_date_start|date:"j F" }} – {{ post.event_date_end|date:"j F Y" }}
-                {% endif %}
-              </p>
-              {% with etiquettes=post.etiquettes_grist %}
-                {% if etiquettes.type or etiquettes.equipes %}
-                  <div class="fr-card__start">
-                    <ul class="fr-tags-group">
-                      {% if etiquettes.type %}
-                        <li>
-                          <p class="fr-tag fr-tag--sm fabrique-tag-type"><span class="fr-sr-only">Type : </span>{{ etiquettes.type }}</p>
-                        </li>
-                      {% endif %}
-                      {% for equipe in etiquettes.equipes %}
-                        <li>
-                          <p class="fr-tag fr-tag--sm fr-tag--icon-left fr-icon-team-line">
-                            <span class="fr-sr-only">Équipe : </span>{{ equipe }}
-                          </p>
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                {% elif post.event_categories.all %}
-                  <div class="fr-card__start">
-                    <ul class="fr-tags-group">
-                      {% for cat in post.event_categories.all %}
-                        <li>
-                          <p class="fr-tag fr-tag--sm">{{ cat.name }}</p>
-                        </li>
-                      {% endfor %}
-                    </ul>
-                  </div>
-                {% endif %}
-              {% endwith %}
-            </div>
-          </div>
-          {% if post.header_image %}
-            <div class="fr-card__header">
-              <div class="fr-card__img fabrique-vignette">
-                {% image post.header_image max-480x270 preserve-svg as vignette %}
-                <img class="fr-responsive-img" src="{{ vignette.url }}" width="{{ vignette.width }}" height="{{ vignette.height }}" alt=""{% with largeur=post.header_image|largeur_vignette %}{% if largeur %} style="width: {{ largeur }}px"{% endif %}{% endwith %}>
-              </div>
-            </div>
-          {% endif %}
-        </div>
+        {% include "fabrique/agenda/carte.html" with post=post titre_tag=value.sub_heading_tag %}
       </div>
     {% empty %}
       <div class="fr-col-12">

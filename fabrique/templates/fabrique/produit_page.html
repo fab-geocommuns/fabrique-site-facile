@@ -182,6 +182,25 @@
     {% endif %}
   {% endwith %}
 
+  {# Prochains rendez-vous de l'équipe du produit (agenda Grist), seulement s'il y en a #}
+  {% with agenda=page.agenda %}
+    {% if agenda %}
+      <section class="fr-container fr-pt-6w">
+        <h2>Prochains rendez-vous</h2>
+        <ul class="fr-grid-row fr-grid-row--gutters fabrique-catalogue">
+          {% for post in agenda.evenements %}
+            <li class="fr-col-12 fr-col-sm-6 fr-col-lg-3">
+              {% include "fabrique/agenda/carte.html" with post=post titre_tag="h3" %}
+            </li>
+          {% endfor %}
+        </ul>
+        <p class="fr-mt-3w">
+          <a class="fr-link fr-icon-arrow-right-line fr-link--icon-right" href="{{ agenda.tout }}">Tout l'agenda du produit</a>
+        </p>
+      </section>
+    {% endif %}
+  {% endwith %}
+
   {# Actualités du produit (catégorie du blog) #}
   {% with actus=page.actualites %}
     {% if actus %}
