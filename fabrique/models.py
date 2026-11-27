@@ -251,6 +251,52 @@ class ProduitPage(SitesFacilesBasePage):
         tout = f"{index.url}?category={self.categorie_actualites.slug}" if index else ""
         return {"entrees": entries, "tout": tout}
 
+    def est_son_equipe(self, equipe: str) -> bool:
+        """L'équipe Grist (agenda, actus) est-elle celle du produit ?
+
+        Même correspondance que pour les actualités (fabrique.actualites.Categories) : l'équipe porte le nom de la
+        catégorie des actualités du produit, ou son adresse ; à défaut de catégorie, le nom du produit.
+        """
+        from fabrique.actualites import CATEGORIES_EQUIPES
+
+        slug = CATEGORIES_EQUIPES.get(equipe) or slugify(equipe)
+        if self.categorie_actualites_id:
+            categorie = self.categorie_actualites
+            if slug == categorie.slug or equipe.casefold() == categorie.name.casefold():
+                return True
+        return slug == self.slug or slugify(equipe) == slugify(self.title)
+
+    def agenda(self, limit: int = 4) -> dict | None:
+        """Prochains rendez-vous (et ceux en cours) de l'équipe du produit, et lien vers l'agenda filtré sur l'équipe."""
+        from django.utils import timezone
+
+        from content_manager.models import Tag
+        from events.models import EventEntryPage
+
+        a_venir = (
+            EventEntryPage.objects.live()
+            .public()
+            .filter(event_date_end__gte=timezone.now(), etiquettes_grist__isnull=False)
+            .select_related("etiquettes_grist", "header_image")
+            .order_by("event_date_start", "pk")
+        )
+        evenements, equipes = [], set()
+        for evenement in a_venir:
+            siennes = [e for e in evenement.etiquettes_grist.equipes if self.est_son_equipe(e)]
+            if siennes:
+                evenements.append(evenement)
+                equipes.update(siennes)
+        if not evenements:
+            return None
+
+        tout = ""
+        index = evenements[0].get_parent().specific
+        noms = sorted(equipes)
+        tag = Tag.objects.filter(name__in=noms).first() or Tag.objects.filter(slug=slugify(noms[0])).first()
+        if tag:
+            tout = f"{index.url}?tag={tag.slug}"
+        return {"evenements": evenements[:limit], "tout": tout or index.url}
+
     def a_un_corps(self) -> bool:
         return bool(self.body and len(self.body))
 
